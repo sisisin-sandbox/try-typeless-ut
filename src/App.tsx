@@ -1,26 +1,53 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { createModule, useActions } from 'typeless';
 
-const App: React.FC = () => {
+export interface FooState {
+  foo: string;
+}
+export const fooSymbol = Symbol('foo');
+const modules = createModule(fooSymbol)
+  .withActions({
+    bar: null,
+    baz: (baz: string) => ({ payload: { baz } }),
+  })
+  .withState<FooState>();
+export const useFooModule = modules[0];
+export const FooActions = modules[1];
+const getFooState = modules[2];
+
+export const r = useFooModule.reducer({ foo: 'foo' }).on(FooActions.baz, (state, { baz }) => {
+  state.foo = baz;
+});
+export const e = useFooModule.epic().on(FooActions.bar, (a, b, c) => {
+  return FooActions.baz('barbar');
+});
+
+const Foo = () => {
+  const { baz, bar } = useActions(FooActions);
+  const { foo } = getFooState.useState();
+  return (
+    <>
+      <div>{foo}</div>
+      <button
+        onClick={() => {
+          baz('bazubazu');
+        }}
+      >
+        button
+      </button>
+      <button onClick={bar}>button</button>
+    </>
+  );
+};
+const FooModule = () => {
+  useFooModule();
+  console.log(r({ foo: 'o' }, FooActions.baz('baz')));
+  return <Foo />;
+};
+export const App: React.FC = () => {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <FooModule />
     </div>
   );
-}
-
-export default App;
+};
