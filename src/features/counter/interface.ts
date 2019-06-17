@@ -7,6 +7,7 @@ export interface CounterState {
 const modules = createModule(CounterSymbol)
   .withActions({
     increment: null,
+    incrementNTimes: (n: number) => ({ payload: { n } }),
     incrementThreeTimes: null,
   })
   .withState<CounterState>();

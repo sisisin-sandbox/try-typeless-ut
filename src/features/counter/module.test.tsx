@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import { Registry, TypelessContext, createModule } from 'typeless';
-import { CounterActions, CounterState, getCounterState, useCounterModule } from './interface';
-import { epic, reducer } from './module';
+import { createModule, Registry, TypelessContext } from 'typeless';
+import { CounterActions, CounterState } from './interface';
+import { epic, incrementTwoTimesEpicHandler, reducer } from './module';
 import { CounterSymbol } from './symbol';
 
 it('should increment count', () => {
@@ -16,6 +16,13 @@ it('should return three increment actions', () => {
   const targetEpic = epic.handlers.get(CounterSymbol)!.get((CounterActions.incrementThreeTimes() as any).type[1])![0];
   expect(targetEpic(undefined, undefined as any, undefined)).toStrictEqual([
     CounterActions.increment(),
+    CounterActions.increment(),
+    CounterActions.increment(),
+  ]);
+});
+
+it('should return n increment actions', () => {
+  expect(incrementTwoTimesEpicHandler({ n: 2 })).toStrictEqual([
     CounterActions.increment(),
     CounterActions.increment(),
   ]);
