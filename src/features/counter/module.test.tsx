@@ -1,5 +1,9 @@
-import { reducer, epic } from './module';
-import { CounterState, CounterActions } from './interface';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import { Registry, TypelessContext, createModule } from 'typeless';
+import { CounterActions, CounterState, getCounterState, useCounterModule } from './interface';
+import { epic, reducer } from './module';
 import { CounterSymbol } from './symbol';
 
 it('should increment count', () => {
@@ -15,4 +19,57 @@ it('should return three increment actions', () => {
     CounterActions.increment(),
     CounterActions.increment(),
   ]);
+});
+
+describe('epic', () => {
+  let container: HTMLDivElement = null!;
+  let registry: Registry = null!;
+  let state: CounterState = null!;
+  let App: any = null!;
+  beforeEach(() => {
+    registry = new Registry();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+
+    const [handle, getState] = createModule(Symbol('test')).withState<CounterState>();
+    handle.epic().attach(epic);
+    handle.reducer({ count: 0 }).attach(reducer);
+
+    App = () => {
+      handle();
+      state = getState.useState();
+
+      return null;
+    };
+  });
+  afterEach(() => {
+    registry.reset();
+    document.body.removeChild(container);
+    container = null!;
+    state = null!;
+  });
+
+  function render(node: React.ReactChild) {
+    act(() => {
+      ReactDOM.render(<TypelessContext.Provider value={{ registry }}>{node}</TypelessContext.Provider>, container);
+    });
+  }
+
+  it('run increment 3 times', () => {
+    render(<App />);
+    expect(state.count).toBe(0);
+    act(() => {
+      registry.dispatch(CounterActions.incrementThreeTimes());
+    });
+    expect(state.count).toBe(3);
+  });
+
+  it('run multiple', () => {
+    render(<App />);
+    act(() => {
+      registry.dispatch(CounterActions.incrementThreeTimes());
+      registry.dispatch(CounterActions.incrementThreeTimes());
+    });
+    expect(state.count).toBe(6);
+  });
 });
