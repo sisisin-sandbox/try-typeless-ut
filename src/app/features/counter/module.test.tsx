@@ -1,7 +1,7 @@
+import { render } from 'app/helper';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Registry } from 'typeless';
-import { render } from '../../helper';
 import { CounterActions, CounterState, getCounterState } from './interface';
 import { CounterModule, incrementTwoTimesEpicHandler, reducer } from './module';
 
@@ -20,26 +20,31 @@ it('should return n increment actions', () => {
 
 describe('epic', () => {
   const registry = new Registry();
-  it('should run twice', () => {
+  const dispatch = jest.spyOn(registry, 'dispatch');
+
+  it('should be updated', () => {
     render(() => <CounterModule />, registry);
 
     act(() => {
       registry.dispatch(CounterActions.incrementThreeTimes());
-      registry.dispatch(CounterActions.incrementThreeTimes());
     });
 
-    expect(getCounterState().count).toBe(6);
+    expect(getCounterState().count).toBe(3);
+    expect(dispatch.mock.calls).toMatchObject([
+      [CounterActions.incrementThreeTimes()],
+      [CounterActions.increment()],
+      [CounterActions.increment()],
+      [CounterActions.increment()],
+    ]);
   });
 
   it('should run 3 times', () => {
     render(() => <CounterModule />, registry);
 
     act(() => {
-      registry.dispatch(CounterActions.incrementThreeTimes());
-      registry.dispatch(CounterActions.incrementThreeTimes());
-      registry.dispatch(CounterActions.incrementThreeTimes());
+      registry.dispatch(CounterActions.incrementNTimes(4));
     });
 
-    expect(getCounterState().count).toBe(9);
+    expect(getCounterState().count).toBe(4);
   });
 });

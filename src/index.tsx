@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { App } from './App';
 import { DefaultTypelessProvider } from 'typeless';
+import { App } from './app/App';
 
 ReactDOM.render(
   <DefaultTypelessProvider>
